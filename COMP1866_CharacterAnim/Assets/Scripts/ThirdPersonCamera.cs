@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 [RequireComponent(typeof(Camera))]
 public class ThirdPersonOTS_Camera : MonoBehaviour
@@ -6,6 +6,11 @@ public class ThirdPersonOTS_Camera : MonoBehaviour
     [Header("Target")]
     public Transform target;              // Player root
     public Transform aimPivot;            // Empty GameObject at chest height (recommended)
+
+    [Header("Animator Gating (NEW)")]
+    public Animator animator;             // Player Animator
+    public string boolIsArmed = "isArmed";
+    public string boolIsAiming = "isAiming"; // optional but recommended
 
     [Header("Offsets")]
     public float height = 1.6f;
@@ -49,6 +54,10 @@ public class ThirdPersonOTS_Camera : MonoBehaviour
         cam.fieldOfView = normalFov;
         currentRot = transform.rotation;
         currentShoulder = shoulderOffset;
+
+        // Auto-grab animator if not assigned
+        if (!animator && target)
+            animator = target.GetComponentInChildren<Animator>();
     }
 
     void Start()
@@ -73,19 +82,37 @@ public class ThirdPersonOTS_Camera : MonoBehaviour
         pitch -= Input.GetAxis("Mouse Y") * mouseSensitivity * 100f * Time.deltaTime;
         pitch = Mathf.Clamp(pitch, minPitch, maxPitch);
 
-        bool aiming = enableAimZoom && Input.GetMouseButton(1);
+        // ─────────────────────────────────────────────
+        // 🔒 AIM GATING (THIS IS THE FIX)
+        // ─────────────────────────────────────────────
+
+        bool isArmed = animator && animator.GetBool(boolIsArmed);
+
+        // Recommended: zoom follows animator aiming state
+        bool aiming =
+            enableAimZoom &&
+            isArmed &&
+            animator &&
+            animator.GetBool(boolIsAiming);
+
+        // (Fallback if you ever remove isAiming)
+        // bool aiming = enableAimZoom && isArmed && Input.GetMouseButton(1);
 
         float targetDist = aiming ? aimDistance : distance;
         float targetShoulder = aiming
             ? aimShoulderOffset * Mathf.Sign(shoulderOffset)
             : shoulderOffset;
 
-        currentShoulder = Mathf.Lerp(currentShoulder, targetShoulder, rotationSmooth * Time.deltaTime);
+        currentShoulder = Mathf.Lerp(
+            currentShoulder,
+            targetShoulder,
+            rotationSmooth * Time.deltaTime);
 
         Quaternion targetRot = Quaternion.Euler(pitch, yaw, 0f);
 
-        // Stable pivot (IMPORTANT: do NOT use head bone)
-        Vector3 pivotPos = (aimPivot ? aimPivot.position : target.position) + Vector3.up * height;
+        // Stable pivot (do NOT use head bone)
+        Vector3 pivotPos =
+            (aimPivot ? aimPivot.position : target.position) + Vector3.up * height;
 
         // Desired camera position
         Vector3 desiredPos =
@@ -93,7 +120,7 @@ public class ThirdPersonOTS_Camera : MonoBehaviour
             + targetRot * Vector3.right * currentShoulder
             - targetRot * Vector3.forward * targetDist;
 
-        // Camera collision
+        // Collision
         Vector3 dir = desiredPos - pivotPos;
         float dist = dir.magnitude;
         dir.Normalize();
@@ -130,6 +157,9 @@ public class ThirdPersonOTS_Camera : MonoBehaviour
 
         // Smooth FOV
         float targetFov = aiming ? aimFov : normalFov;
-        cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, targetFov, fovSmooth * Time.deltaTime);
+        cam.fieldOfView = Mathf.Lerp(
+            cam.fieldOfView,
+            targetFov,
+            fovSmooth * Time.deltaTime);
     }
 }

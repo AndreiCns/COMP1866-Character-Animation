@@ -81,7 +81,7 @@ public class PlayerController : MonoBehaviour
         bool aiming = Input.GetMouseButton(1); // RMB
         bool shooting = Input.GetMouseButton(0); // LMB
 
-        anim.SetBool("Aim", aiming);
+        anim.SetBool("isAiming", aiming);
         anim.SetBool("isShooting", shooting);
 
         // Enable the upper-body layer only while aiming
