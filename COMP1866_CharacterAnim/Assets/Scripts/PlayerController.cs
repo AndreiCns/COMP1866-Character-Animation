@@ -37,34 +37,43 @@ public class PlayerController : MonoBehaviour
     {
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
-        Vector3 input = new Vector3(h, 0f, v).normalized;
 
-        // Animator "Speed"
-        float moveAmount = Mathf.Clamp01(Mathf.Abs(h) + Mathf.Abs(v));
-        anim.SetFloat("Speed", moveAmount);
+        Vector3 input = new Vector3(h, 0f, v);
+        if (input.sqrMagnitude > 1f) input.Normalize();
 
-        if (moveAmount > 0.01f)
+        bool isRunning = Input.GetKey(KeyCode.LeftShift);
+        float moveSpeed = isRunning ? runSpeed : walkSpeed;
+
+        // move direction relative to camera
+        Vector3 camForward = cam ? cam.transform.forward : transform.forward;
+        Vector3 camRight = cam ? cam.transform.right : transform.right;
+        camForward.y = 0f; camRight.y = 0f;
+        camForward.Normalize(); camRight.Normalize();
+
+        Vector3 moveDir = (camForward * input.z + camRight * input.x);
+        if (moveDir.sqrMagnitude > 1f) moveDir.Normalize();
+
+        // rotate towards movement
+        if (moveDir.sqrMagnitude > 0.0001f)
         {
-            // Move relative to camera
-            Vector3 camForward = cam.transform.forward;
-            Vector3 camRight = cam.transform.right;
-            camForward.y = 0;
-            camRight.y = 0;
-            camForward.Normalize();
-            camRight.Normalize();
-
-            Vector3 moveDir = camForward * v + camRight * h;
-            moveDir.Normalize();
-
-            // Apply movement
-            float targetSpeed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : walkSpeed;
-            cc.Move(moveDir * targetSpeed * Time.deltaTime);
-
-            // Rotate to movement direction
             Quaternion targetRot = Quaternion.LookRotation(moveDir);
-            transform.rotation = Quaternion.Lerp(transform.rotation, targetRot, Time.deltaTime * rotationSpeed);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
         }
+
+        // apply horizontal movement (keep vertical for gravity)
+        Vector3 horizontalMove = moveDir * moveSpeed;
+
+        // Animator "Speed" (0 = idle, 0.5 = walk, 1 = run)
+        float speedParam = 0f;
+        if (input.sqrMagnitude > 0.0001f)
+            speedParam = isRunning ? 1f : 0.5f;
+
+        anim.SetFloat("Speed", speedParam, 0.1f, Time.deltaTime);
+
+        // MOVE the character controller
+        cc.Move(horizontalMove * Time.deltaTime);
     }
+
 
     // ------------------------------ AIMING & SHOOTING ------------------------------ //
     void HandleAimAndShoot()
