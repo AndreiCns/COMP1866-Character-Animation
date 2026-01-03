@@ -18,6 +18,9 @@ public class PlayerController : MonoBehaviour
     private Vector3 velocity;
     private int aimLayer;
 
+    // NEW: cover gating
+    private const string IS_IN_COVER = "isInCover";
+
     void Awake()
     {
         cc = GetComponent<CharacterController>();
@@ -28,13 +31,36 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         HandleMovement();
-        HandleAimAndShoot();
+       
         ApplyGravity();
     }
 
     // ------------------------------ MOVEMENT ------------------------------ //
     void HandleMovement()
     {
+        // NEW: lock movement while in cover
+        if (anim && anim.GetBool(IS_IN_COVER))
+        {
+            anim.SetFloat("Speed", 0f, 0.1f, Time.deltaTime);
+
+            // NEW: face camera
+            // Face the CAMERA (so player sees the character's face)
+            if (cam)
+            {
+                Vector3 toCam = cam.transform.position - transform.position;
+                toCam.y = 0f;
+
+                if (toCam.sqrMagnitude > 0.001f)
+                {
+                    Quaternion targetRot = Quaternion.LookRotation(toCam.normalized);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
+                }
+            }
+
+            return;
+        }
+
+
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
 
@@ -74,24 +100,6 @@ public class PlayerController : MonoBehaviour
         cc.Move(horizontalMove * Time.deltaTime);
     }
 
-
-    // ------------------------------ AIMING & SHOOTING ------------------------------ //
-    void HandleAimAndShoot()
-    {
-        bool aiming = Input.GetMouseButton(1); // RMB
-        bool shooting = Input.GetMouseButton(0); // LMB
-
-        anim.SetBool("isAiming", aiming);
-        anim.SetBool("isShooting", shooting);
-
-        // Enable the upper-body layer only while aiming
-        if (aimLayer >= 0)
-        {
-            float targetWeight = aiming ? 1f : 0f;
-            float currentWeight = anim.GetLayerWeight(aimLayer);
-            anim.SetLayerWeight(aimLayer, Mathf.Lerp(currentWeight, targetWeight, Time.deltaTime * 10f));
-        }
-    }
 
     // ------------------------------ GRAVITY ------------------------------ //
     void ApplyGravity()

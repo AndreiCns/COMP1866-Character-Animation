@@ -8,100 +8,84 @@ public class ShootHandler : MonoBehaviour
     [SerializeField] private PlayerInput playerInput;
     [SerializeField] private Animator animator;
 
-    [Header("Input Action Names")]
+    [Header("Input")]
     [SerializeField] private string actionMapName = "Player";
     [SerializeField] private string drawHolsterActionName = "Draw/Holster";
     [SerializeField] private string attackActionName = "Attack";
+    public int aimMouseButton = 1;
 
-    [Header("Aim Input (fallback)")]
-    [Tooltip("If you don't have an Aim action, RMB will control isAiming (only when armed).")]
-    public int aimMouseButton = 1; // RMB
-
-    [Header("Animator Layer")]
+    [Header("Animator Layers")]
     [SerializeField] private string upperLayerName = "UpperArmed";
+    [SerializeField] private string coverUpperLayerName = "CoverUpper";
     [SerializeField] private float layerBlendSpeed = 12f;
 
     [Header("Animator Params")]
     [SerializeField] private string trigDraw = "Draw";
     [SerializeField] private string trigHolster = "Holster";
     [SerializeField] private string trigShoot = "Shoot";
+    [SerializeField] private string trigCoverShoot = "coverShoot";
     [SerializeField] private string boolIsArmed = "isArmed";
     [SerializeField] private string boolIsAiming = "isAiming";
+    [SerializeField] private string boolIsInCover = "isInCover";
+    [SerializeField] private string boolIsCoverShooting = "isCoverShooting";
 
-    [Header("UpperArmed State Names (must match STATE names in the Animator graph)")]
-    [SerializeField] private string holsterStateName = "Holster";
+    [Header("Timing")]
+    [SerializeField] private float coverShootHoldTime = 0.15f;
 
     private InputAction drawHolsterAction;
     private InputAction attackAction;
 
-    private int upperLayerIndex = -1;
+    private int upperLayer;
+    private int coverUpperLayer;
 
     private bool isArmedLocal;
-    private bool forceUpperLayerOn;      // keeps layer visible during holster
+    private bool forceUpperLayerOn;
     private Coroutine holsterRoutine;
-
-    void Reset()
-    {
-        playerInput = GetComponent<PlayerInput>();
-        animator = GetComponent<Animator>();
-    }
 
     void Awake()
     {
-        if (!playerInput) playerInput = GetComponent<PlayerInput>();
-        if (!animator) animator = GetComponent<Animator>();
+        playerInput = playerInput ? playerInput : GetComponent<PlayerInput>();
+        animator = animator ? animator : GetComponent<Animator>();
 
-        if (!playerInput || !animator)
-        {
-            Debug.LogError("[ShootHandler] Missing PlayerInput or Animator on this GameObject.");
-            enabled = false;
-            return;
-        }
+        upperLayer = animator.GetLayerIndex(upperLayerName);
+        coverUpperLayer = animator.GetLayerIndex(coverUpperLayerName);
 
-        upperLayerIndex = animator.GetLayerIndex(upperLayerName);
-        if (upperLayerIndex < 0)
-        {
-            Debug.LogError($"[ShootHandler] Animator layer '{upperLayerName}' not found.");
-            enabled = false;
-            return;
-        }
-
-        var actions = playerInput.actions;
-        drawHolsterAction = actions.FindAction($"{actionMapName}/{drawHolsterActionName}", false);
-        attackAction = actions.FindAction($"{actionMapName}/{attackActionName}", false);
-
-        if (drawHolsterAction == null)
-            Debug.LogError($"[ShootHandler] Missing action {actionMapName}/{drawHolsterActionName}");
-        if (attackAction == null)
-            Debug.LogError($"[ShootHandler] Missing action {actionMapName}/{attackActionName}");
+        drawHolsterAction = playerInput.actions.FindAction($"{actionMapName}/{drawHolsterActionName}");
+        attackAction = playerInput.actions.FindAction($"{actionMapName}/{attackActionName}");
     }
 
     void OnEnable()
     {
-        drawHolsterAction?.Enable();
-        attackAction?.Enable();
-
-        if (drawHolsterAction != null) drawHolsterAction.performed += OnDrawHolster;
-        if (attackAction != null) attackAction.performed += OnAttack;
+        drawHolsterAction.performed += OnDrawHolster;
+        attackAction.performed += OnAttack;
+        drawHolsterAction.Enable();
+        attackAction.Enable();
     }
 
     void OnDisable()
     {
-        if (drawHolsterAction != null) drawHolsterAction.performed -= OnDrawHolster;
-        if (attackAction != null) attackAction.performed -= OnAttack;
+        drawHolsterAction.performed -= OnDrawHolster;
+        attackAction.performed -= OnAttack;
     }
 
-    // Use LateUpdate so we overwrite whatever PlayerController wrote earlier this frame.
     void LateUpdate()
     {
-        // Aim is ONLY allowed when armed.
-        bool aimingNow = isArmedLocal && Input.GetMouseButton(aimMouseButton);
-        animator.SetBool(boolIsAiming, aimingNow);
+        bool inCover = animator.GetBool(boolIsInCover);
+        bool aiming = isArmedLocal && Input.GetMouseButton(aimMouseButton);
 
-        // Upper layer should be ON while armed, OR while holster is playing.
-        float targetWeight = (isArmedLocal || forceUpperLayerOn) ? 1f : 0f;
-        float current = animator.GetLayerWeight(upperLayerIndex);
-        animator.SetLayerWeight(upperLayerIndex, Mathf.Lerp(current, targetWeight, Time.deltaTime * layerBlendSpeed));
+        animator.SetBool(boolIsAiming, aiming);
+
+        bool coverAiming = inCover && aiming;
+
+        // CoverUpper OVERRIDES everything while cover-aiming
+        SetLayerWeight(coverUpperLayer, coverAiming ? 1f : 0f);
+
+        // UpperArmed disabled during cover shooting
+        float upperTarget =
+            coverAiming ? 0f :
+            (isArmedLocal || forceUpperLayerOn ? 1f : 0f);
+
+        SetLayerWeight(upperLayer, upperTarget);
     }
 
     private void OnDrawHolster(InputAction.CallbackContext _)
@@ -118,61 +102,55 @@ public class ShootHandler : MonoBehaviour
         {
             isArmedLocal = true;
             animator.SetBool(boolIsArmed, true);
-
-            // Keep layer on (it will stay on anyway because isArmedLocal = true)
-            forceUpperLayerOn = true;
-
-            animator.ResetTrigger(trigHolster);
             animator.SetTrigger(trigDraw);
-
-            // Release force immediately; armed keeps it on.
-            forceUpperLayerOn = false;
         }
         else
         {
-            // Start holster, but DO NOT fade the upper layer out yet
             isArmedLocal = false;
             animator.SetBool(boolIsArmed, false);
-
-            // Aim must drop instantly when holstering
             animator.SetBool(boolIsAiming, false);
 
             forceUpperLayerOn = true;
-
-            animator.ResetTrigger(trigDraw);
             animator.SetTrigger(trigHolster);
-
-            holsterRoutine = StartCoroutine(WaitForHolsterThenDisableLayer());
+            holsterRoutine = StartCoroutine(DisableUpperAfterHolster());
         }
     }
 
     private void OnAttack(InputAction.CallbackContext _)
     {
-        // Shoot from BOTH ArmedIdle and Aim:
-        // - If unarmed: ignore
-        // - If armed: always trigger shoot (animator decides which state path to use)
         if (!isArmedLocal) return;
+
+        bool inCover = animator.GetBool(boolIsInCover);
+
+        if (inCover)
+        {
+            if (!animator.GetBool(boolIsAiming)) return;
+
+            animator.SetTrigger(trigCoverShoot);
+            StartCoroutine(CoverShootWindow());
+            return;
+        }
 
         animator.SetTrigger(trigShoot);
     }
 
-    private IEnumerator WaitForHolsterThenDisableLayer()
+    private IEnumerator CoverShootWindow()
     {
-        // Wait until Holster state is actually active on the upper layer
-        while (!IsInUpperState(holsterStateName))
-            yield return null;
-
-        // Wait until the holster clip is basically done
-        while (IsInUpperState(holsterStateName) &&
-               animator.GetCurrentAnimatorStateInfo(upperLayerIndex).normalizedTime < 0.95f)
-            yield return null;
-
-        forceUpperLayerOn = false;
-        holsterRoutine = null;
+        animator.SetBool(boolIsCoverShooting, true);
+        yield return new WaitForSeconds(coverShootHoldTime);
+        animator.SetBool(boolIsCoverShooting, false);
     }
 
-    private bool IsInUpperState(string stateName)
+    private IEnumerator DisableUpperAfterHolster()
     {
-        return animator.GetCurrentAnimatorStateInfo(upperLayerIndex).IsName(stateName);
+        yield return new WaitForSeconds(0.4f);
+        forceUpperLayerOn = false;
+    }
+
+    private void SetLayerWeight(int layer, float target)
+    {
+        if (layer < 0) return;
+        float w = animator.GetLayerWeight(layer);
+        animator.SetLayerWeight(layer, Mathf.Lerp(w, target, Time.deltaTime * layerBlendSpeed));
     }
 }

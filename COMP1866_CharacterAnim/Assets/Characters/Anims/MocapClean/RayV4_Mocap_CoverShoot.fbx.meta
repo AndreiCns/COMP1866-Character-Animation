@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: c8bec89ac5f754f42a4b46d9f961583d
+guid: e804231a6a05865459f1e3b51364cb56
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -22,24 +22,24 @@ ModelImporter:
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
     importConstraints: 0
-    animationCompression: 1
-    animationRotationError: 1
-    animationPositionError: 1
+    animationCompression: 3
+    animationRotationError: 0.5
+    animationPositionError: 0.5
     animationScaleError: 0.5
     animationWrapMode: 0
     extraExposedTransformPaths: []
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: crouchIdle
+      name: CoverShoot
       takeName: chr03
       internalID: 8135697838313968457
-      firstFrame: 198
-      lastFrame: 208
+      firstFrame: 125
+      lastFrame: 139
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
-      cycleOffset: 0
+      cycleOffset: 1
       loop: 0
       hasAdditiveReferencePose: 0
       loopTime: 1
