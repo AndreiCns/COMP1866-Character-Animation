@@ -7,16 +7,16 @@ AvatarMask:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: RayV4_AvatarMask_Upper
-  m_Mask: 01000000010000000100000000000000000000000100000001000000010000000100000001000000010000000100000001000000
+  m_Mask: 00000000010000000100000000000000000000000100000001000000010000000100000001000000010000000100000001000000
   m_Elements:
   - m_Path: 
     m_Weight: 1
   - m_Path: RayV4_Mesh
     m_Weight: 1
   - m_Path: root
-    m_Weight: 1
+    m_Weight: 0
   - m_Path: root/CC_Base_Hip
-    m_Weight: 1
+    m_Weight: 0
   - m_Path: root/CC_Base_Hip/CC_Base_Pelvis
     m_Weight: 0
   - m_Path: root/CC_Base_Hip/CC_Base_Pelvis/CC_Base_L_Thigh

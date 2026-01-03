@@ -746,6 +746,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d73406b563655fe4a8d3166f68711fb3, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1472955512}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d73406b563655fe4a8d3166f68711fb3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1472955513}
   m_SourcePrefab: {fileID: 100100000, guid: d73406b563655fe4a8d3166f68711fb3, type: 3}
 --- !u!1 &1145751922
 GameObject:
@@ -858,17 +861,21 @@ MonoBehaviour:
   animator: {fileID: 1472955509}
   boolIsArmed: isArmed
   boolIsAiming: isAiming
+  boolIsCrouching: isCrouching
   height: 0
   distance: 1.5
   shoulderOffset: 0.24
+  crouchDistanceOffset: -0.5
+  crouchHeightOffset: -0.2
+  crouchLerpSpeed: 4
   mouseSensitivity: 2
   minPitch: -55
   maxPitch: 55
   enableAimZoom: 1
   aimDistance: 1.25
-  aimShoulderOffset: 0.55
+  aimShoulderOffset: 0.45
   normalFov: 70
-  aimFov: 55
+  aimFov: 50
   positionSmooth: 0.06
   rotationSmooth: 8
   fovSmooth: 8
@@ -877,6 +884,7 @@ MonoBehaviour:
   collisionMask:
     serializedVersion: 2
     m_Bits: 8
+  crouchCameraDelay: 1.3
 --- !u!114 &1145751927
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1164,6 +1172,29 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 1145751924}
+--- !u!114 &1472955513
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1472955502}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec1c4d0f3ed4d814899faa11038d32db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerInput: {fileID: 1472955512}
+  animator: {fileID: 1472955509}
+  characterController: {fileID: 1472955508}
+  actionMapName: Player
+  crouchActionName: Crouch
+  adjustCapsule: 1
+  standingHeight: 1.8
+  standingCenter: {x: 0, y: 0.9, z: 0}
+  crouchHeight: 1.2
+  crouchCenter: {x: 0, y: 0.6, z: 0}
+  toggleCooldown: 0.25
 --- !u!1001 &1640547660
 PrefabInstance:
   m_ObjectHideFlags: 0

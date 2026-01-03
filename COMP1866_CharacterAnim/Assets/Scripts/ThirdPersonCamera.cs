@@ -11,11 +11,17 @@ public class ThirdPersonOTS_Camera : MonoBehaviour
     public Animator animator;             // Player Animator
     public string boolIsArmed = "isArmed";
     public string boolIsAiming = "isAiming"; // optional but recommended
+    public string boolIsCrouching = "isCrouching"; // NEW
 
     [Header("Offsets")]
     public float height = 1.6f;
     public float distance = 3.2f;
     public float shoulderOffset = 0.45f;
+
+    [Header("Crouch Camera Offset (NEW)")]
+    public float crouchDistanceOffset = -0.45f; // closer
+    public float crouchHeightOffset = -0.25f;   // lower
+    public float crouchLerpSpeed = 8f;
 
     [Header("Look")]
     public float mouseSensitivity = 2.5f;
@@ -39,14 +45,25 @@ public class ThirdPersonOTS_Camera : MonoBehaviour
     public float collisionPadding = 0.1f;
     public LayerMask collisionMask = ~0;
 
+    [Header("Crouch Camera Timing")]
+    public float crouchCameraDelay = 0.25f; // delay before camera moves (seconds)
+
+
     float yaw;
     float pitch;
     float currentShoulder;
+    float crouchTimer;
+    bool wasCrouching;
+
 
     Vector3 posVel;
     Quaternion currentRot;
 
     Camera cam;
+
+    // NEW: cache base values so crouch offset is always relative
+    float baseHeight;
+    float baseDistance;
 
     void Awake()
     {
@@ -67,6 +84,10 @@ public class ThirdPersonOTS_Camera : MonoBehaviour
 
         if (target)
             yaw = target.eulerAngles.y;
+
+        // NEW: cache base offsets
+        baseHeight = height;
+        baseDistance = distance;
     }
 
     void LateUpdate()
@@ -83,7 +104,7 @@ public class ThirdPersonOTS_Camera : MonoBehaviour
         pitch = Mathf.Clamp(pitch, minPitch, maxPitch);
 
         // ─────────────────────────────────────────────
-        // 🔒 AIM GATING (THIS IS THE FIX)
+        // 🔒 ANIMATOR GATING
         // ─────────────────────────────────────────────
 
         bool isArmed = animator && animator.GetBool(boolIsArmed);
@@ -95,10 +116,50 @@ public class ThirdPersonOTS_Camera : MonoBehaviour
             animator &&
             animator.GetBool(boolIsAiming);
 
-        // (Fallback if you ever remove isAiming)
-        // bool aiming = enableAimZoom && isArmed && Input.GetMouseButton(1);
+        // NEW: crouch state
+        bool isCrouching = animator && animator.GetBool(boolIsCrouching);
 
+        // Detect crouch state change
+        if (isCrouching && !wasCrouching)
+        {
+            // Just started crouching
+            crouchTimer = 0f;
+        }
+
+        if (!isCrouching)
+        {
+            // Reset when standing
+            crouchTimer = 0f;
+        }
+
+        wasCrouching = isCrouching;
+
+        // Count time while crouching
+        if (isCrouching)
+            crouchTimer += Time.deltaTime;
+
+        // Apply crouch offset only after delay
+        bool applyCrouchCamera = isCrouching && crouchTimer >= crouchCameraDelay;
+
+        float targetBaseDistance =
+            baseDistance + (applyCrouchCamera ? crouchDistanceOffset : 0f);
+
+        float targetBaseHeight =
+            baseHeight + (applyCrouchCamera ? crouchHeightOffset : 0f);
+
+        distance = Mathf.Lerp(
+            distance,
+            targetBaseDistance,
+            crouchLerpSpeed * Time.deltaTime);
+
+        height = Mathf.Lerp(
+            height,
+            targetBaseHeight,
+            crouchLerpSpeed * Time.deltaTime);
+
+        // Aim distance overrides crouch distance (crouch still affects height)
         float targetDist = aiming ? aimDistance : distance;
+
         float targetShoulder = aiming
             ? aimShoulderOffset * Mathf.Sign(shoulderOffset)
             : shoulderOffset;
