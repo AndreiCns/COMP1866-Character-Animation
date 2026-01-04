@@ -31,6 +31,17 @@ public class ShootHandler : MonoBehaviour
     [SerializeField] private string boolIsInCover = "isInCover";
     [SerializeField] private string boolIsCoverShooting = "isCoverShooting";
 
+    [Header("Shot FX")]
+    [SerializeField] private ParticleSystem muzzleFlashR;
+    [SerializeField] private ParticleSystem muzzleFlashL;
+
+    [SerializeField] private AudioSource shotAudio;
+    [SerializeField] private AudioClip shotClip;
+
+    [Header("Alternate muzzle (R then L then R...)")]
+    [SerializeField] private bool startWithRight = true;
+    private bool shootRightNext;
+
     [Header("Timing")]
     [SerializeField] private float coverShootHoldTime = 0.15f;
 
@@ -52,6 +63,7 @@ public class ShootHandler : MonoBehaviour
         // Auto-fill references if not assigned in inspector
         if (!playerInput) playerInput = GetComponent<PlayerInput>();
         if (!animator) animator = GetComponent<Animator>();
+        shootRightNext = startWithRight;
 
         // Ensure PlayerInput and its Actions asset exist
         if (!playerInput || playerInput.actions == null)
@@ -205,11 +217,13 @@ public class ShootHandler : MonoBehaviour
             if (!animator.GetBool(boolIsAiming)) return;
 
             animator.SetTrigger(trigCoverShoot);
+            PlayShotFx(forceRight: true);     //  cover = RIGHT only flash + SFX
             StartCoroutine(CoverShootWindow());
             return;
         }
 
         animator.SetTrigger(trigShoot);
+        PlayShotFx();                         //  normal = alternates R/L
     }
 
     private IEnumerator CoverShootWindow()
@@ -232,5 +246,20 @@ public class ShootHandler : MonoBehaviour
         if (animator == null || layer < 0) return;
         float w = animator.GetLayerWeight(layer);
         animator.SetLayerWeight(layer, Mathf.Lerp(w, target, Time.deltaTime * layerBlendSpeed));
+    }
+
+    private void PlayShotFx(bool forceRight = false)
+    {
+        // If forcing right (cover), always use right muzzle and DO NOT flip.
+        bool useRight = forceRight ? true : shootRightNext;
+
+        var ps = useRight ? muzzleFlashR : muzzleFlashL;
+        if (ps != null) ps.Play(true);
+
+        if (shotAudio != null && shotClip != null)
+            shotAudio.PlayOneShot(shotClip);
+
+        if (!forceRight)
+            shootRightNext = !shootRightNext;
     }
 }
