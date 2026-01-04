@@ -63,6 +63,18 @@ public class PlayerController : MonoBehaviour
     // ------------------------------ MOVEMENT ------------------------------ //
     void HandleMovement()
     {
+        // NEW: lock movement during enter/exit crouch transitions (tagged states)
+        var st0 = anim.GetCurrentAnimatorStateInfo(0);
+
+        bool lockByTag =
+            st0.IsTag("LockMove") ||
+            (anim.IsInTransition(0) && anim.GetNextAnimatorStateInfo(0).IsTag("LockMove"));
+
+        if (lockByTag)
+        {
+            anim.SetFloat(SPEED_PARAM, 0f, speedDampTime, Time.deltaTime);
+            return;
+        }
         // NEW: lock movement while in cover
         if (anim != null && anim.GetBool(IS_IN_COVER))
         {

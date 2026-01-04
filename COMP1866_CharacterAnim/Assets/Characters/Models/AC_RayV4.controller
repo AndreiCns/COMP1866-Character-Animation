@@ -975,7 +975,7 @@ AnimatorState:
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
   m_Motion: {fileID: 8135697838313968457, guid: e3de4ef5b160f144395909e208dad042, type: 3}
-  m_Tag: 
+  m_Tag: LockMove
   m_SpeedParameter: 
   m_MirrorParameter: 
   m_CycleOffsetParameter: 
@@ -1277,7 +1277,7 @@ AnimatorState:
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
   m_Motion: {fileID: 8135697838313968457, guid: 1595deebce37eed49b738567e38f90de, type: 3}
-  m_Tag: 
+  m_Tag: LockMove
   m_SpeedParameter: 
   m_MirrorParameter: 
   m_CycleOffsetParameter: 
