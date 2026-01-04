@@ -24,13 +24,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1117188786325578093}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.4999994, y: 0.50000125, z: -0.49999988, w: -0.4999994}
-  m_LocalPosition: {x: 0.013, y: 0.094, z: 0.017}
+  m_LocalRotation: {x: 0.5266747, y: 0.568184, z: -0.42596117, w: -0.46726635}
+  m_LocalPosition: {x: 0.004, y: 0.085, z: 0.014}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5588216694281026323}
-  m_LocalEulerAnglesHint: {x: 0, y: -90, z: -270}
+  m_LocalEulerAnglesHint: {x: -0.467, y: -101.563, z: -274.723}
 --- !u!1 &1316085299072280816
 GameObject:
   m_ObjectHideFlags: 0
@@ -50,6 +50,7 @@ GameObject:
   - component: {fileID: 204777718762035760}
   - component: {fileID: 6248463351813207062}
   - component: {fileID: 3608513916979785825}
+  - component: {fileID: 6847588987374064368}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -166,12 +167,12 @@ CharacterController:
   m_Enabled: 1
   serializedVersion: 3
   m_Height: 2
-  m_Radius: 0.5
+  m_Radius: 0.3
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 1.08, z: 0}
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!114 &7927484604632116294
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -189,6 +190,7 @@ MonoBehaviour:
   rotationSpeed: 12
   gravity: -20
   cam: {fileID: 0}
+  speedDampTime: 0.1
 --- !u!114 &7914532704541504152
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -397,6 +399,23 @@ MonoBehaviour:
   handL: {fileID: 2028240354806239}
   handR: {fileID: 4613507486903539938}
   holsterOnStart: 1
+--- !u!114 &6847588987374064368
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1316085299072280816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eefbe86a7020c224aa5099fc6e692e99, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  footstepClips:
+  - {fileID: 8300000, guid: 3df658f42d3eda540aa469c9411724a8, type: 3}
+  - {fileID: 8300000, guid: 337e2ea9679e42a4cac04bae063eaac5, type: 3}
+  - {fileID: 8300000, guid: 6ed3146002162844e9c7c86383b4635f, type: 3}
+  volume: 0.8
 --- !u!1 &2181790815574960713
 GameObject:
   m_ObjectHideFlags: 0
@@ -579,13 +598,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4928235655516813158}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.49999994, y: -0.49999967, z: -0.50000143, w: -0.49999908}
-  m_LocalPosition: {x: 0.013, y: 0.094, z: 0.017}
+  m_LocalRotation: {x: -0.53846675, y: -0.45831546, z: -0.53846824, w: -0.45831484}
+  m_LocalPosition: {x: -0, y: 0.094, z: 0.017}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1010105270129283352}
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: -270}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: -260.805}
 --- !u!1 &8645737585663960146
 GameObject:
   m_ObjectHideFlags: 0
