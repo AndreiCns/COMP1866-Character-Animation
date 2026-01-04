@@ -570,7 +570,7 @@ ModelImporter:
     - name: CC_Base_L_MidToe1
       parentName: CC_Base_L_ToeBase
       position: {x: 0.00000033378603, y: 0.02230127, z: 0.00000040531162}
-      rotation: {x: -0.059972994, y: -0.118773215, z: 0.02048522, w: 0.9908968}
+      rotation: {x: -0.059972998, y: -0.118773215, z: 0.020485222, w: 0.9908968}
       scale: {x: 1.0000008, y: 1.0000002, z: 1.000001}
     - name: CC_Base_L_PinkyToe1
       parentName: CC_Base_L_ToeBase
@@ -727,6 +727,11 @@ ModelImporter:
       position: {x: 0.0000018554742, y: 0.19352528, z: 0.0000049400333}
       rotation: {x: -0.02028611, y: 0.0001303388, z: -0.007006143, w: 0.9997697}
       scale: {x: 1.0000004, y: 1.0000002, z: 1.0000001}
+    - name: WeaponSocket_L
+      parentName: CC_Base_L_Hand
+      position: {x: -0.05, y: 0.1, z: 0.02}
+      rotation: {x: -0.073912784, y: -0.073912784, z: 0.7032332, w: -0.7032332}
+      scale: {x: 0.75, y: 0.75, z: 0.75}
     - name: CC_Base_L_Index1
       parentName: CC_Base_L_Hand
       position: {x: -0.008864173, y: 0.07325303, z: 0.057186943}
@@ -802,6 +807,11 @@ ModelImporter:
       position: {x: -0.00000020980832, y: 0.034921072, z: -0.00000009536742}
       rotation: {x: -0.012066014, y: -0.0009749119, z: -0.013225192, w: 0.9998393}
       scale: {x: 1.0000002, y: 1.0000002, z: 1.0000002}
+    - name: Rig 1
+      parentName: CC_Base_L_Hand
+      position: {x: -1.5555834, y: -0.67248964, z: 0.057215236}
+      rotation: {x: 0.014191911, y: 0.0140057355, z: -0.7019058, w: 0.7119908}
+      scale: {x: 0.99999887, y: 0.9999978, z: 0.99999887}
     - name: CC_Base_L_UpperarmTwist01
       parentName: CC_Base_L_Upperarm
       position: {x: -0.00000007797034, y: -0.00000009536745, z: -0.000000019073491}
@@ -812,6 +822,11 @@ ModelImporter:
       position: {x: 0.00000029750166, y: 0.11120467, z: -0.0000008106231}
       rotation: {x: -0.0000015749769, y: -0.00021111185, z: -0.0000010256749, w: 1}
       scale: {x: 1.0000001, y: 1.0000002, z: 1.0000001}
+    - name: HolsterSocket_L
+      parentName: CC_Base_L_Clavicle
+      position: {x: -0.1378, y: -0.0259, z: 0.195}
+      rotation: {x: -0.8002314, y: -0.11949332, z: 0.047992367, w: 0.5857029}
+      scale: {x: 0.54999995, y: 0.54999995, z: 0.5500001}
     - name: CC_Base_L_RibsTwist
       parentName: CC_Base_Spine02
       position: {x: -0.09937182, y: 0.066961974, z: 0.08963209}
@@ -840,7 +855,7 @@ ModelImporter:
     - name: CC_Base_FacialBone
       parentName: CC_Base_Head
       position: {x: 2.4010663e-12, y: 0.0000003665686, z: 0.00000007867814}
-      rotation: {x: 0.3677768, y: -0.60392785, z: -0.36779547, w: 0.6039353}
+      rotation: {x: 0.36777684, y: -0.6039279, z: -0.3677955, w: 0.60393536}
       scale: {x: 1.0000002, y: 1.0000002, z: 1}
     - name: CC_Base_JawRoot
       parentName: CC_Base_FacialBone
@@ -922,10 +937,15 @@ ModelImporter:
       position: {x: -0.000001256466, y: 0.19352548, z: 0.0000023269656}
       rotation: {x: -0.020293448, y: -0.00012678523, z: 0.0069991723, w: 0.99976957}
       scale: {x: 1.0000005, y: 1.0000004, z: 1.0000001}
+    - name: WeaponSocket_R
+      parentName: CC_Base_R_Hand
+      position: {x: 0.05, y: 0.1, z: 0.02}
+      rotation: {x: -0.073912784, y: -0.073912784, z: 0.7032332, w: -0.7032332}
+      scale: {x: 0.75, y: 0.75, z: 0.75}
     - name: CC_Base_R_Index1
       parentName: CC_Base_R_Hand
       position: {x: 0.008864309, y: 0.07325332, z: 0.057186916}
-      rotation: {x: 0.07652016, y: -0.0044637, z: -0.0105167255, w: 0.99700266}
+      rotation: {x: 0.07652015, y: -0.0044637, z: -0.010516725, w: 0.99700266}
       scale: {x: 1.0000006, y: 1.0000005, z: 1.0000004}
     - name: CC_Base_R_Index2
       parentName: CC_Base_R_Index1
@@ -965,12 +985,12 @@ ModelImporter:
     - name: CC_Base_R_Pinky3
       parentName: CC_Base_R_Pinky2
       position: {x: -0.0000000071525568, y: 0.023898847, z: 0}
-      rotation: {x: 0.0018747697, y: 0.00011979373, z: -0.026924727, w: 0.9996357}
+      rotation: {x: 0.0018747698, y: 0.00011979373, z: -0.02692473, w: 0.9996357}
       scale: {x: 1.0000006, y: 1.0000006, z: 1.0000004}
     - name: CC_Base_R_Ring1
       parentName: CC_Base_R_Hand
       position: {x: 0.00000033736225, y: 0.090281434, z: -0.000000009536742}
-      rotation: {x: 0.076922886, y: -0.00044804288, z: -0.008851107, w: 0.99699765}
+      rotation: {x: 0.07692289, y: -0.00044804288, z: -0.008851108, w: 0.99699765}
       scale: {x: 1.0000005, y: 1.0000004, z: 1.0000002}
     - name: CC_Base_R_Ring2
       parentName: CC_Base_R_Ring1
@@ -1007,6 +1027,11 @@ ModelImporter:
       position: {x: 0.0000000308454, y: 0.11120446, z: -0.00000022888182}
       rotation: {x: -0.0000014197855, y: 0.00021123793, z: 0.000000747925, w: 1}
       scale: {x: 1.0000005, y: 1.0000005, z: 1.0000002}
+    - name: HolsterSocket_R
+      parentName: CC_Base_R_Clavicle
+      position: {x: 0.137, y: -0.027, z: 0.201}
+      rotation: {x: -0.13393125, y: -0.7451055, z: -0.6533502, w: -0.003730632}
+      scale: {x: 0.54999995, y: 0.54999995, z: 0.5500001}
     - name: CC_Base_R_RibsTwist
       parentName: CC_Base_Spine02
       position: {x: 0.09928707, y: 0.067029916, z: 0.08959256}
