@@ -4,6 +4,9 @@ using UnityEngine.InputSystem;
 [DisallowMultipleComponent]
 public class CrouchHandler : MonoBehaviour
 {
+    // Handles toggling crouch via the new Input System and optionally adjusts
+    // the CharacterController capsule to match crouch/stand heights.
+
     [Header("References")]
     [SerializeField] private PlayerInput playerInput;
     [SerializeField] private Animator animator;
@@ -30,11 +33,15 @@ public class CrouchHandler : MonoBehaviour
     private const string EXIT_CROUCH = "exitCrouch";
     private const string IS_IN_COVER = "isInCover";
 
+    // Cached input map & action (safe lookups are used in Awake)
+    private InputActionMap playerMap;
     private InputAction crouchAction;
+
     private float nextAllowedToggleTime;
 
     void Reset()
     {
+        // Provide sensible defaults in the inspector when adding the component
         playerInput = GetComponent<PlayerInput>();
         animator = GetComponent<Animator>();
         characterController = GetComponent<CharacterController>();
@@ -42,10 +49,12 @@ public class CrouchHandler : MonoBehaviour
 
     void Awake()
     {
+        // Auto-fill references if not set in inspector
         if (!playerInput) playerInput = GetComponent<PlayerInput>();
         if (!animator) animator = GetComponent<Animator>();
         if (!characterController) characterController = GetComponent<CharacterController>();
 
+        // Require essential components to operate
         if (!playerInput || !animator || !characterController)
         {
             Debug.LogError("[CrouchHandler] Missing PlayerInput, Animator, or CharacterController.");
@@ -53,22 +62,55 @@ public class CrouchHandler : MonoBehaviour
             return;
         }
 
-        crouchAction = playerInput.actions.FindAction($"{actionMapName}/{crouchActionName}", true);
+        if (playerInput.actions == null)
+        {
+            Debug.LogError("[CrouchHandler] PlayerInput has no Actions asset assigned.");
+            enabled = false;
+            return;
+        }
+
+        // Find the action map and action without throwing exceptions. This is safer
+        // than using the "map/action" path with throwOnError=true which can throw.
+        playerMap = playerInput.actions.FindActionMap(actionMapName, false);
+        if (playerMap == null)
+        {
+            Debug.LogError($"[CrouchHandler] ActionMap '{actionMapName}' not found on PlayerInput. Check the Actions asset and the field value.");
+            enabled = false;
+            return;
+        }
+
+        crouchAction = playerMap.FindAction(crouchActionName, false);
+        if (crouchAction == null)
+        {
+            Debug.LogError($"[CrouchHandler] Action '{crouchActionName}' not found in map '{actionMapName}'. Check the Actions asset and the field value.");
+            enabled = false;
+            return;
+        }
     }
 
     void OnEnable()
     {
-        crouchAction.performed += OnCrouchPressed;
-        crouchAction.Enable();
+        // Enable the action map and action and subscribe safely
+        playerMap?.Enable();
+        crouchAction?.Enable();
+
+        if (crouchAction != null)
+            crouchAction.performed += OnCrouchPressed;
     }
 
     void OnDisable()
     {
-        crouchAction.performed -= OnCrouchPressed;
+        // Unsubscribe safely and disable actions/maps
+        if (crouchAction != null)
+            crouchAction.performed -= OnCrouchPressed;
+
+        crouchAction?.Disable();
+        playerMap?.Disable();
     }
 
     private void OnCrouchPressed(InputAction.CallbackContext _)
     {
+        // Simple cooldown to prevent rapid toggles which can confuse animation state
         if (Time.time < nextAllowedToggleTime)
             return;
 
@@ -94,6 +136,8 @@ public class CrouchHandler : MonoBehaviour
 
         if (!adjustCapsule) return;
 
+        // Immediately snap capsule to crouch values. If you prefer a smooth
+        // transition, consider lerping height/center over time instead.
         characterController.height = crouchHeight;
         characterController.center = crouchCenter;
     }

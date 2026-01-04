@@ -3,35 +3,60 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
+    // Simple player controller: handles camera-relative movement, running, rotation,
+    // and gravity. Also respects an animator-driven cover state to lock movement.
+
     [Header("Movement Settings")]
-    public float walkSpeed = 3.5f;
-    public float runSpeed = 5.5f;
-    public float rotationSpeed = 12f;
-    public float gravity = -20f;
+    public float walkSpeed = 3.5f; // Walking speed of the player
+    public float runSpeed = 5.5f; // Running speed of the player
+    public float rotationSpeed = 12f; // Speed of player rotation
+    public float gravity = -20f; // Gravity strength
 
     [Header("References")]
-    public Camera cam;
+    public Camera cam; // Optional camera for camera-relative movement
 
-    private CharacterController cc;
-    private Animator anim;
+    private CharacterController cc; // Cached CharacterController component
+    private Animator anim; // Cached Animator component
 
-    private Vector3 velocity;
-    private int aimLayer;
+    private Vector3 velocity; // Velocity vector, used for gravity
+    private int aimLayer; // Animator layer index for aiming (if used)
 
     // NEW: cover gating
-    private const string IS_IN_COVER = "isInCover";
+    private const string IS_IN_COVER = "isInCover"; // Animator boolean for cover state
+
+    // Animator parameter names
+    private const string SPEED_PARAM = "Speed"; // Animator parameter for speed
+
+    // Smoothing for animator speed parameter (was hardcoded)
+    [SerializeField] private float speedDampTime = 0.1f; // Damping time for speed transition
 
     void Awake()
     {
+        // Cache required components
         cc = GetComponent<CharacterController>();
         anim = GetComponent<Animator>();
+
+        if (cc == null)
+        {
+            Debug.LogError("[PlayerController] CharacterController is required.");
+            enabled = false;
+            return;
+        }
+
+        if (anim == null)
+        {
+            Debug.LogError("[PlayerController] Animator is required.");
+            enabled = false;
+            return;
+        }
+
+        // Cache aim layer index if the animator contains it (safe call)
         aimLayer = anim.GetLayerIndex("AimUpper");
     }
 
     void Update()
     {
         HandleMovement();
-       
         ApplyGravity();
     }
 
@@ -39,13 +64,13 @@ public class PlayerController : MonoBehaviour
     void HandleMovement()
     {
         // NEW: lock movement while in cover
-        if (anim && anim.GetBool(IS_IN_COVER))
+        if (anim != null && anim.GetBool(IS_IN_COVER))
         {
-            anim.SetFloat("Speed", 0f, 0.1f, Time.deltaTime);
+            // While in cover we don't move; keep animator Speed at zero smoothly
+            anim.SetFloat(SPEED_PARAM, 0f, speedDampTime, Time.deltaTime);
 
-            // NEW: face camera
             // Face the CAMERA (so player sees the character's face)
-            if (cam)
+            if (cam != null)
             {
                 Vector3 toCam = cam.transform.position - transform.position;
                 toCam.y = 0f;
@@ -60,7 +85,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-
+        // Read input (legacy Input API). Consider migrating to the Input System for consistency.
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
 
@@ -70,23 +95,23 @@ public class PlayerController : MonoBehaviour
         bool isRunning = Input.GetKey(KeyCode.LeftShift);
         float moveSpeed = isRunning ? runSpeed : walkSpeed;
 
-        // move direction relative to camera
-        Vector3 camForward = cam ? cam.transform.forward : transform.forward;
-        Vector3 camRight = cam ? cam.transform.right : transform.right;
+        // Move direction relative to camera if present, otherwise relative to character
+        Vector3 camForward = cam != null ? cam.transform.forward : transform.forward;
+        Vector3 camRight = cam != null ? cam.transform.right : transform.right;
         camForward.y = 0f; camRight.y = 0f;
         camForward.Normalize(); camRight.Normalize();
 
         Vector3 moveDir = (camForward * input.z + camRight * input.x);
         if (moveDir.sqrMagnitude > 1f) moveDir.Normalize();
 
-        // rotate towards movement
+        // Rotate towards movement if there is input
         if (moveDir.sqrMagnitude > 0.0001f)
         {
             Quaternion targetRot = Quaternion.LookRotation(moveDir);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
         }
 
-        // apply horizontal movement (keep vertical for gravity)
+        // Apply horizontal movement (keep vertical velocity for gravity)
         Vector3 horizontalMove = moveDir * moveSpeed;
 
         // Animator "Speed" (0 = idle, 0.5 = walk, 1 = run)
@@ -94,7 +119,8 @@ public class PlayerController : MonoBehaviour
         if (input.sqrMagnitude > 0.0001f)
             speedParam = isRunning ? 1f : 0.5f;
 
-        anim.SetFloat("Speed", speedParam, 0.1f, Time.deltaTime);
+        if (anim != null)
+            anim.SetFloat(SPEED_PARAM, speedParam, speedDampTime, Time.deltaTime);
 
         // MOVE the character controller
         cc.Move(horizontalMove * Time.deltaTime);
@@ -105,7 +131,7 @@ public class PlayerController : MonoBehaviour
     void ApplyGravity()
     {
         if (cc.isGrounded && velocity.y < 0)
-            velocity.y = -2f;
+            velocity.y = -2f; // small negative to keep grounded
 
         velocity.y += gravity * Time.deltaTime;
         cc.Move(velocity * Time.deltaTime);
