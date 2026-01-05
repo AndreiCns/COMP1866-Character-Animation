@@ -1,5 +1,6 @@
 using UnityEngine;
 
+// Plays footstep SFX based on animator events and speed parameter.
 public class FootstepPlayer : MonoBehaviour
 {
     [Header("Refs")]
@@ -12,9 +13,8 @@ public class FootstepPlayer : MonoBehaviour
     [Header("Tuning")]
     [Range(0f, 1f)] public float volume = 0.6f;
 
-    // This should match whatever your movement uses (often animator "Speed" 0..1)
-    [SerializeField] private string speedParam = "Speed";
-    [SerializeField] private float runThreshold = 0.6f; // above this = running
+    [SerializeField] private string speedParam = "Speed"; // animator Speed param
+    [SerializeField] private float runThreshold = 0.6f; // above = running
     [SerializeField] private bool ignoreDuringTransitions = true;
 
     void Reset()
@@ -22,22 +22,24 @@ public class FootstepPlayer : MonoBehaviour
         animator = GetComponent<Animator>();
     }
 
+    // Called from animation event for walk footstep
     public void FootstepWalk()
     {
         if (!CanPlayFootstep()) return;
 
         float s = animator ? animator.GetFloat(speedParam) : 0f;
-        if (s >= runThreshold) return; // if we're running, ignore walk events
+        if (s >= runThreshold) return; // skip if running
 
         PlayRandom(walkFootsteps);
     }
 
+    // Called from animation event for run footstep
     public void FootstepRun()
     {
         if (!CanPlayFootstep()) return;
 
         float s = animator ? animator.GetFloat(speedParam) : 0f;
-        if (s < runThreshold) return; // if we're walking, ignore run events
+        if (s < runThreshold) return; // skip if walking
 
         PlayRandom(runFootsteps);
     }

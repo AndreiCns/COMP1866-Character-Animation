@@ -4,49 +4,45 @@ using UnityEngine.InputSystem;
 [DisallowMultipleComponent]
 public class CoverHandler : MonoBehaviour
 {
-    // Handles entering/exiting cover when near a cover trigger. Uses the new
-    // Input System to listen for an Interact action and drives animator
-    // parameters to gate cover state. Also optionally snaps the player to the
-    // cover surface to avoid clipping.
+    // Manages entering/exiting cover using the new Input System and animator gating.
+    // Optionally snaps player to cover surface to avoid clipping.
 
     [Header("References")]
-    [SerializeField] private PlayerInput playerInput;       // PlayerInput component (new Input System)
-    [SerializeField] private Animator animator;             // Player Animator
-    [SerializeField] private CharacterController controller; // CharacterController for snapping
+    [SerializeField] private PlayerInput playerInput;
+    [SerializeField] private Animator animator;
+    [SerializeField] private CharacterController controller;
 
     [Header("Input")]
-    [SerializeField] private string actionMapName = "Player";    // Action map to look up
-    [SerializeField] private string interactActionName = "Interact"; // Interact action name
+    [SerializeField] private string actionMapName = "Player";
+    [SerializeField] private string interactActionName = "Interact";
 
     [Header("Cover Detection")]
-    [SerializeField] private string coverTag = "Cover";    // Collider tag used for cover triggers
-    [SerializeField] private float snapDistance = 0.25f;     // not currently used but reserved for future
-    [SerializeField] private float rotateToCoverSpeed = 14f; // speed to rotate player to face cover
+    [SerializeField] private string coverTag = "Cover";
+    [SerializeField] private float snapDistance = 0.25f; // reserved
+    [SerializeField] private float rotateToCoverSpeed = 14f;
 
     [Header("Animator Params")]
-    [SerializeField] private string boolIsCrouching = "isCrouching"; // animator param: is crouching
-    [SerializeField] private string boolIsInCover = "isInCover";    // animator param: in cover
-    [SerializeField] private string trigEnterCover = "enterCover"; // animator trigger: enter
-    [SerializeField] private string trigExitCover = "exitCover";   // animator trigger: exit
-    [SerializeField] private string boolIsCoverShooting = "isCoverShooting"; // optional param
+    [SerializeField] private string boolIsCrouching = "isCrouching";
+    [SerializeField] private string boolIsInCover = "isInCover";
+    [SerializeField] private string trigEnterCover = "enterCover";
+    [SerializeField] private string trigExitCover = "exitCover";
+    [SerializeField] private string boolIsCoverShooting = "isCoverShooting";
 
     [Header("Debug")]
-    [SerializeField] private bool debugLogs = true; // enable debug logs for development
+    [SerializeField] private bool debugLogs = true;
 
     // Cached input map and action
     private InputActionMap playerMap;
     private InputAction interactAction;
 
-    // Current nearby cover transform and collider
+    // Nearby cover refs
     private Transform currentCover;
     private Collider currentCoverCol;
 
-    // Polled fallback for input
     private bool interactPressedThisFrame;
 
     void Reset()
     {
-        // Set sensible defaults when component is first added
         playerInput = GetComponent<PlayerInput>();
         animator = GetComponent<Animator>();
         controller = GetComponent<CharacterController>();
@@ -54,12 +50,11 @@ public class CoverHandler : MonoBehaviour
 
     void Awake()
     {
-        // Auto-fill references if not set in inspector
+        // Auto-fill refs and validate
         if (!playerInput) playerInput = GetComponent<PlayerInput>();
         if (!animator) animator = GetComponent<Animator>();
         if (!controller) controller = GetComponent<CharacterController>();
 
-        // Basic validation
         if (!playerInput || !animator || !controller)
         {
             Debug.LogError("[CoverHandler] Missing PlayerInput / Animator / CharacterController.");
@@ -74,7 +69,6 @@ public class CoverHandler : MonoBehaviour
             return;
         }
 
-        // Find action map and action safely (no exceptions)
         playerMap = playerInput.actions.FindActionMap(actionMapName, false);
         if (playerMap == null)
         {
@@ -97,7 +91,6 @@ public class CoverHandler : MonoBehaviour
 
     void OnEnable()
     {
-        // Enable map/action and subscribe to callback safely
         playerMap?.Enable();
         interactAction?.Enable();
 
@@ -110,7 +103,6 @@ public class CoverHandler : MonoBehaviour
 
     void OnDisable()
     {
-        // Unsubscribe and disable map/action
         if (interactAction != null)
             interactAction.performed -= OnInteract;
 
@@ -123,7 +115,7 @@ public class CoverHandler : MonoBehaviour
 
     void Update()
     {
-        // Poll as a fallback so input works even if events don't fire in some setups
+        // Poll input as a fallback
         if (interactAction != null)
             interactPressedThisFrame = interactAction.WasPressedThisFrame();
         else
@@ -135,11 +127,10 @@ public class CoverHandler : MonoBehaviour
             TryToggleCover();
         }
 
-        // If not in cover or no current cover, skip rotation
         if (!animator.GetBool(boolIsInCover) || currentCover == null)
             return;
 
-        // Gently rotate player to face cover forward while in cover
+        // Rotate to face cover while in cover
         Vector3 forward = currentCover.forward;
         forward.y = 0f;
 
@@ -200,18 +191,17 @@ public class CoverHandler : MonoBehaviour
 
     private void EnterCover()
     {
-        // Set animator state/trigger for entering cover
+        // Set animator state and clear optional flags
         animator.ResetTrigger(trigExitCover);
         animator.SetBool(boolIsInCover, true);
         animator.SetTrigger(trigEnterCover);
 
-        // Clear optional cover-shooting flag if present
         if (HasParam(boolIsCoverShooting))
             animator.SetBool(boolIsCoverShooting, false);
 
         if (!currentCoverCol) return;
 
-        // Snap player to the cover surface with a small stand-off so they don't clip into the collider
+        // Snap player to cover with a small stand-off
         Vector3 playerPos = transform.position;
         Vector3 closest = currentCoverCol.ClosestPoint(playerPos);
 
@@ -222,7 +212,6 @@ public class CoverHandler : MonoBehaviour
         Vector3 coverToPlayer = (playerPos - currentCover.position);
         coverToPlayer.y = 0f;
 
-        // Determine which side of the cover the player is on
         float side = Vector3.Dot(coverToPlayer, coverForward);
         Vector3 pushDir = (side >= 0f) ? coverForward : -coverForward;
 
@@ -236,7 +225,7 @@ public class CoverHandler : MonoBehaviour
 
     private void ExitCover()
     {
-        // Reset animator triggers and params for leaving cover
+        // Reset animator params when leaving cover
         animator.ResetTrigger(trigEnterCover);
 
         if (HasParam(boolIsCoverShooting))
@@ -250,7 +239,6 @@ public class CoverHandler : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // Only register colliders with the configured tag as cover
         if (!other.CompareTag(coverTag)) return;
         currentCover = other.transform;
         currentCoverCol = other;
@@ -259,7 +247,6 @@ public class CoverHandler : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        // Clear current cover when leaving the trigger collider
         if (currentCoverCol && other == currentCoverCol)
         {
             if (debugLogs) Debug.Log($"[CoverHandler] Left cover: {currentCover.name}");
@@ -270,7 +257,7 @@ public class CoverHandler : MonoBehaviour
 
     private bool HasParam(string param)
     {
-        // Check if animator contains a parameter named `param`.
+        // Return true if animator contains the named parameter
         if (string.IsNullOrEmpty(param)) return false;
         foreach (var p in animator.parameters)
             if (p.name == param) return true;

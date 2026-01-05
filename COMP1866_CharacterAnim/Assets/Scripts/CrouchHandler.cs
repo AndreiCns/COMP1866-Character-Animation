@@ -4,8 +4,7 @@ using UnityEngine.InputSystem;
 [DisallowMultipleComponent]
 public class CrouchHandler : MonoBehaviour
 {
-    // Handles toggling crouch via the new Input System and optionally adjusts
-    // the CharacterController capsule to match crouch/stand heights.
+    // Toggles crouch via the new Input System and optionally adjusts the CharacterController.
 
     [Header("References")]
     [SerializeField] private PlayerInput playerInput;
@@ -27,13 +26,13 @@ public class CrouchHandler : MonoBehaviour
     [Tooltip("Prevents spam toggling mid-transition which can cause stuck states.")]
     [SerializeField] private float toggleCooldown = 0.25f;
 
-    // Animator parameter names (MATCH YOUR CONTROLLER)
+    // Animator parameter names
     private const string IS_CROUCHING = "isCrouching";
     private const string ENTER_CROUCH = "enterCrouch";
     private const string EXIT_CROUCH = "exitCrouch";
     private const string IS_IN_COVER = "isInCover";
 
-    // Cached input map & action (safe lookups are used in Awake)
+    // Cached input map & action
     private InputActionMap playerMap;
     private InputAction crouchAction;
 
@@ -41,7 +40,6 @@ public class CrouchHandler : MonoBehaviour
 
     void Reset()
     {
-        // Provide sensible defaults in the inspector when adding the component
         playerInput = GetComponent<PlayerInput>();
         animator = GetComponent<Animator>();
         characterController = GetComponent<CharacterController>();
@@ -49,12 +47,11 @@ public class CrouchHandler : MonoBehaviour
 
     void Awake()
     {
-        // Auto-fill references if not set in inspector
+        // Auto-fill refs and validate
         if (!playerInput) playerInput = GetComponent<PlayerInput>();
         if (!animator) animator = GetComponent<Animator>();
         if (!characterController) characterController = GetComponent<CharacterController>();
 
-        // Require essential components to operate
         if (!playerInput || !animator || !characterController)
         {
             Debug.LogError("[CrouchHandler] Missing PlayerInput, Animator, or CharacterController.");
@@ -69,8 +66,6 @@ public class CrouchHandler : MonoBehaviour
             return;
         }
 
-        // Find the action map and action without throwing exceptions. This is safer
-        // than using the "map/action" path with throwOnError=true which can throw.
         playerMap = playerInput.actions.FindActionMap(actionMapName, false);
         if (playerMap == null)
         {
@@ -90,7 +85,6 @@ public class CrouchHandler : MonoBehaviour
 
     void OnEnable()
     {
-        // Enable the action map and action and subscribe safely
         playerMap?.Enable();
         crouchAction?.Enable();
 
@@ -100,7 +94,6 @@ public class CrouchHandler : MonoBehaviour
 
     void OnDisable()
     {
-        // Unsubscribe safely and disable actions/maps
         if (crouchAction != null)
             crouchAction.performed -= OnCrouchPressed;
 
@@ -110,11 +103,11 @@ public class CrouchHandler : MonoBehaviour
 
     private void OnCrouchPressed(InputAction.CallbackContext _)
     {
-        // Simple cooldown to prevent rapid toggles which can confuse animation state
+        // Cooldown to avoid rapid toggles
         if (Time.time < nextAllowedToggleTime)
             return;
 
-        // Future-proof: block toggle in cover (change later if you want)
+        // Block toggling while in cover
         if (animator.GetBool(IS_IN_COVER))
             return;
 
@@ -127,7 +120,7 @@ public class CrouchHandler : MonoBehaviour
 
     private void EnterCrouch()
     {
-        // Clear triggers to avoid leftover firing
+        // Set animator params and adjust capsule if enabled
         animator.ResetTrigger(ENTER_CROUCH);
         animator.ResetTrigger(EXIT_CROUCH);
 
@@ -136,15 +129,13 @@ public class CrouchHandler : MonoBehaviour
 
         if (!adjustCapsule) return;
 
-        // Immediately snap capsule to crouch values. If you prefer a smooth
-        // transition, consider lerping height/center over time instead.
         characterController.height = crouchHeight;
         characterController.center = crouchCenter;
     }
 
     private void ExitCrouch()
     {
-        // Clear triggers to avoid leftover firing
+        // Reset animator triggers and capsule
         animator.ResetTrigger(ENTER_CROUCH);
         animator.ResetTrigger(EXIT_CROUCH);
 

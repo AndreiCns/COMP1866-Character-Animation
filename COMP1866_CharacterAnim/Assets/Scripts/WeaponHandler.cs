@@ -1,10 +1,8 @@
 using UnityEngine;
 
+// Utility for attaching pistols to holster or hand sockets and resetting transforms.
 public class WeaponHandler : MonoBehaviour
 {
-    // Manages pistols attaching to holster or hand sockets. Simple utility
-    // to parent weapon GameObjects to named sockets and reset their local transform.
-
     [Header("Pistols")]
     public GameObject pistolL; // left pistol GameObject
     public GameObject pistolR; // right pistol GameObject
@@ -19,31 +17,27 @@ public class WeaponHandler : MonoBehaviour
     [Tooltip("If true, holsters pistols on Start so unarmed state shows pistols in holsters.")]
     public bool holsterOnStart = true;
 
-    // ------------------------------ UNITY ------------------------------ //
     void Start()
     {
-        // Holster pistols on start if configured
         if (holsterOnStart)
             HolsterPistols();
     }
 
-    // ------------------------------ API ------------------------------ //
-    // Attach pistols to the hand sockets (equip)
+    // Equip: parent pistols to hand sockets and reset local transforms
     public void EquipPistols()
     {
         Attach(pistolL, handL, "pistolL/handL");
         Attach(pistolR, handR, "pistolR/handR");
     }
 
-    // Attach pistols to the holster sockets (holster)
+    // Holster: parent pistols to holster sockets and reset local transforms
     public void HolsterPistols()
     {
         Attach(pistolL, holsterL, "pistolL/holsterL");
         Attach(pistolR, holsterR, "pistolR/holsterR");
     }
 
-    // ------------------------------ HELPERS ------------------------------ //
-    // Attach given weapon to socket, reset its local transform, and enable it.
+    // Attach weapon to socket, reset local transform, and enable it
     void Attach(GameObject weapon, Transform socket, string debugLabel)
     {
         if (weapon == null || socket == null)

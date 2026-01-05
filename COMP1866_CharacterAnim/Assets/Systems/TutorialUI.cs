@@ -1,5 +1,6 @@
 using UnityEngine;
 
+// Toggles a tutorial UI root GameObject with a keypress and initial visibility.
 public class TutorialUI : MonoBehaviour
 {
     [Header("Assign the Panel (or the whole Canvas) you want to toggle")]
@@ -14,7 +15,7 @@ public class TutorialUI : MonoBehaviour
     void Awake()
     {
         if (controlsRoot == null)
-            controlsRoot = gameObject; // fallback: toggles this object if nothing assigned
+            controlsRoot = gameObject; // fallback to this object
     }
 
     void Start()

@@ -1,11 +1,12 @@
 using System.Collections;
 using UnityEngine;
 
+// Simple singleton music/ambience/sfx manager with independent volumes.
 public class JukeboxAudio : MonoBehaviour
 {
     [Header("Clips")]
-    public AudioClip[] bgSongs;          // set 3 songs here
-    public AudioClip[] ambienceClips;    // set your ambience one-shots here
+    public AudioClip[] bgSongs;          // background music tracks
+    public AudioClip[] ambienceClips;    // ambient one-shots
 
     [Header("Volumes")]
     [Range(0f, 1f)] public float musicVolume = 0.4f;
@@ -27,7 +28,7 @@ public class JukeboxAudio : MonoBehaviour
 
     void Awake()
     {
-        // Simple singleton so other scripts can call PlaySFX easily
+        // Enforce singleton so static API can call instance methods
         if (instance != null)
         {
             Destroy(gameObject);
@@ -38,22 +39,20 @@ public class JukeboxAudio : MonoBehaviour
         if (dontDestroyOnLoad)
             DontDestroyOnLoad(gameObject);
 
-        // Create 3 AudioSources on this one GameObject
+        // Create dedicated AudioSources for music, ambience, and SFX
         musicSource = gameObject.AddComponent<AudioSource>();
         ambienceSource = gameObject.AddComponent<AudioSource>();
         sfxSource = gameObject.AddComponent<AudioSource>();
 
-        // Music config
-        musicSource.loop = false;            // we do manual "next random"
+        // Configure sources
+        musicSource.loop = false;
         musicSource.playOnAwake = false;
         musicSource.volume = musicVolume;
 
-        // Ambience config
         ambienceSource.loop = false;
         ambienceSource.playOnAwake = false;
         ambienceSource.volume = ambienceVolume;
 
-        // SFX config
         sfxSource.loop = false;
         sfxSource.playOnAwake = false;
         sfxSource.volume = sfxVolume;
@@ -65,7 +64,7 @@ public class JukeboxAudio : MonoBehaviour
         StartCoroutine(AmbienceLoop());
     }
 
-    // ---------------- MUSIC ----------------
+    // Play random background tracks in a loop
     IEnumerator MusicLoop()
     {
         while (true)
@@ -87,12 +86,11 @@ public class JukeboxAudio : MonoBehaviour
         }
     }
 
-    // ---------------- AMBIENCE ----------------
+    // Play ambient one-shots at random intervals
     IEnumerator AmbienceLoop()
     {
         while (true)
         {
-            // wait a random delay between ambience sounds
             float wait = Random.Range(ambienceDelayMin, ambienceDelayMax);
             yield return new WaitForSeconds(wait);
 
@@ -104,7 +102,7 @@ public class JukeboxAudio : MonoBehaviour
         }
     }
 
-    // ---------------- SFX API ----------------
+    // Static API for other scripts to play SFX
     public static void PlaySFX(AudioClip clip, float volumeMul = 1f)
     {
         if (instance == null || clip == null) return;
